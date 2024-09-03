@@ -90,7 +90,6 @@ def main():
             inputs = batch.to(device)
             outputs = []
             optimizer.zero_grad()
-
             with torch.no_grad():
                 _ = backbone(inputs)
                 #outputs = outputs[layer-1]
