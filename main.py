@@ -14,7 +14,7 @@ from options import TrainOptions
 from torchvision.utils import save_image
 from torchvision import models
 from PIL import Image
-
+from tqdm import tqdm
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import roc_curve
 from sklearn.metrics import precision_recall_curve
@@ -136,7 +136,7 @@ def main():
         score_map = []
         gt_list = []
         gt_mask_list = []
-        for i,(name ,batch, ground_truth, gt) in enumerate(test_dataloader):
+        for i,(name ,batch, ground_truth, gt) in enumerate(tqdm(test_dataloader, total=len(test_dataloader))):
             with torch.no_grad():
                 inputs = batch.to(device)
                 ground_truth = ground_truth.to(device)
@@ -169,6 +169,9 @@ def main():
                 score_map.append(score.cpu())
                 gt_mask_list.append(ground_truth.cpu())
                 gt_list.append(gt)
+                # print(f'\ngt_mask_list size = {sys.getsizeof(gt_mask_list)}')
+                # print(f'gt_list size = {sys.getsizeof(gt_list)}')
+                # print(f'score_map size = {sys.getsizeof(score_map)}')
 
         score_map = torch.cat(score_map,dim=0)
         gt_mask_list = torch.cat(gt_mask_list,dim=0)
@@ -187,11 +190,12 @@ def main():
         print('image ROCAUC: %.3f' % (img_roc_auc))
 
         # calculate per-pixel level ROCAUC
-        gt_mask = gt_mask_list.numpy().astype('int')
-        scores = scores.numpy().astype('float32')
-        fpr, tpr, thresholds = roc_curve(gt_mask.flatten(), scores.flatten()) 
-        per_pixel_rocauc = roc_auc_score(gt_mask.flatten(), scores.flatten()) 
-        print('pixel ROCAUC: %.3f' % (per_pixel_rocauc))
+        # gt_mask = gt_mask_list.numpy().astype('int')
+        # scores = scores.numpy().astype('float32')
+        # fpr, tpr, thresholds = roc_curve(gt_mask.flatten(), scores.flatten()) 
+        # per_pixel_rocauc = roc_auc_score(gt_mask.flatten(), scores.flatten()) 
+        # print('pixel ROCAUC: %.3f' % (per_pixel_rocauc))
+        per_pixel_rocauc= 0.0
         
         with open("./%s-%s/args.log" % (args.exp_name,  args.dataset_name) ,"a") as train_log:
             train_log.write("\r[Epoch%d]-[Loss:%f]-[Loss_scale:%f]-[image_AUC:%f]-[pixel_AUC:%f]" %
